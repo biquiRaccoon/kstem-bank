@@ -1,0 +1,56 @@
+name: 교구 목록 10분 자동 갱신
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # 10분마다 (GitHub 사정에 따라 몇 분 늦어질 수 있음)
+    - cron: '0 0 1 * *'      # 매월 1일: 60일 비활성 자동중지 방지용 keepalive
+  workflow_dispatch: {}      # Actions 탭에서 수동 실행 가능
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 교구 목록 수집 (실패한 지원청은 직전 데이터 유지)
+        run: |
+          PREV="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data.json"
+          node scripts/scrape.mjs "$PREV" || node scripts/scrape.mjs public/seed-data.json
+
+      - name: Keepalive (매월 1일만)
+        if: github.event.schedule == '0 0 1 * *'
+        run: |
+          date -u > .github/keepalive
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive && git commit -m "keepalive" && git push || true
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

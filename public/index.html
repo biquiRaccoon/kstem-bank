@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-STEM Bank 교구 찾기 · 서울 11개 교육지원청 통합</title>
+<meta name="description" content="서울특별시교육청 11개 교육지원청 K-STEM Bank 대여 교구를 한 번에 검색하고 신청서 초안을 만드는 도우미">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  /* K-STEM 포스터 톤: 하늘색 바탕, 파랑 주색, 순환도의 빨강·주황·보라·초록 포인트 */
+  --bg:#eef6fd; --paper:#ffffff; --ink:#172a4a; --muted:#5b6b82; --line:#d3e2f1;
+  --green:#1f63c8; --green-2:#2f86e0; --green-soft:#e2effc; --amber:#f08a1c; --amber-soft:#fff1dc;
+  --red:#e0453a; --radius:16px; --sky:#cfe7f8; --tint:#eaf3fb;
+  --cat-과학:#2f86e0; --cat-수학:#8a52c6; --cat-AI:#f08a1c; --cat-센서:#2fa06a;
+  --display:"Jua","Pretendard","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* header */
+header.top{background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-top:18px;padding-bottom:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3b9cf0,#1f63c8);color:#fff;box-shadow:0 3px 0 #164a99;font-family:var(--display);font-weight:400;display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:-.5px}
+.brand b{display:block;font-size:19px;font-family:var(--display);font-weight:400;color:var(--green)}
+.brand small{display:block;opacity:.75;font-size:12.5px}
+.status{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;background:var(--tint);padding:7px 12px;border-radius:999px;cursor:pointer;border:0;color:inherit}
+.dot{width:8px;height:8px;border-radius:50%;background:#2fa06a;box-shadow:0 0 0 3px rgba(47,160,106,.2)}
+.dot.warn{background:#f08a1c;box-shadow:0 0 0 3px rgba(240,138,28,.22)}
+
+.hero{background:linear-gradient(180deg,var(--sky),#e4f1fb 70%,var(--bg));padding:30px 0 22px;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:20px;align-items:center}
+@media(max-width:760px){.hero .wrap{grid-template-columns:1fr}.hero-art{display:none}}
+.eyebrow{font-family:var(--display);font-size:clamp(17px,2vw,21px);color:#2a6fc9;margin:0}
+.wordmark{font-family:var(--display);font-size:clamp(46px,7.5vw,84px);line-height:.95;margin:4px 0 14px;color:#4aa3f0;
+  text-shadow:1px 1px 0 #3a8fe0,2px 2px 0 #2f7fd2,3px 3px 0 #2a72c2,4px 4px 0 #2464b0,6px 8px 14px rgba(31,99,200,.25);letter-spacing:1px}
+.wordmark span{color:#1f63c8;text-shadow:1px 1px 0 #1a56ad,2px 2px 0 #164a99,3px 3px 0 #123f85,4px 4px 0 #0f3570,6px 8px 14px rgba(31,99,200,.25)}
+.hero h1{font-size:clamp(19px,2.4vw,24px);letter-spacing:-.6px;margin:0 0 6px;line-height:1.35}
+.hero p{margin:0;color:var(--muted)}
+.hero-art{width:100%;height:auto;max-height:260px}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.step{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 12px 5px 5px;font-size:13px;font-weight:600;box-shadow:0 2px 0 rgba(23,42,74,.06)}
+.step i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff;font-style:normal;font-family:var(--display);font-size:14px}
+.statline{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:13.5px;color:var(--muted)}
+.statline b{color:var(--green);font-size:22px;margin-right:3px;font-family:var(--display);font-weight:400}
+
+/* controls */
+.controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0 10px;border-bottom:1px solid var(--line)}
+.searchrow{display:flex;gap:10px;flex-wrap:wrap}
+.search{flex:1 1 320px;position:relative}
+.search input{width:100%;padding:13px 14px 13px 42px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);outline:none;font-size:15.5px}
+.search input:focus{border-color:var(--green-2);box-shadow:0 0 0 3px var(--green-soft)}
+.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+select.sort{padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);min-height:48px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 12px;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.chip .n{opacity:.6;margin-left:3px;font-size:12px}
+.chip.off{opacity:.5}
+.myoff{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:14px;background:#fff;border-radius:14px;padding:8px 10px 8px 14px;box-shadow:0 2px 0 rgba(23,42,74,.06)}
+.myoff b{font-size:15px;color:var(--green)}
+.linkbtn{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer}
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:16px}
+.picker button{color:var(--ink);border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:14px 12px;text-align:left;cursor:pointer;font-size:15px;font-weight:700}
+.picker button small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.picker button:hover,.picker button[aria-pressed=true]{border-color:var(--green-2);background:var(--green-soft)}
+.tabs{display:flex;gap:6px;margin:14px 0 0}
+.tabs button{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 16px;font-weight:700;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+[data-mode=gm] .only-sq,[data-mode=sq] .only-gm{display:none}
+.copied{font-size:13px;color:var(--green);font-weight:600;align-self:center;min-height:1em}
+.hint{font-size:12px;color:var(--muted)}
+.rowlabel{font-size:12px;color:var(--muted);margin:10px 2px -4px;font-weight:600;letter-spacing:.2px}
+
+/* layout */
+main .wrap{display:grid;grid-template-columns:1fr 330px;gap:22px;padding-top:18px;padding-bottom:60px;align-items:start}
+@media(max-width:900px){main .wrap{grid-template-columns:1fr}}
+.resultbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:13.5px;color:var(--muted);gap:10px;flex-wrap:wrap}
+.toggle{display:flex;gap:6px;align-items:center;cursor:pointer;user-select:none}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s, box-shadow .15s, transform .15s}
+@media(prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+.card:hover{border-color:#a9c9ea;box-shadow:0 6px 16px rgba(31,99,200,.10);transform:translateY(-1px)}
+.card.in{border-color:var(--green-2);box-shadow:0 0 0 2px var(--green-soft)}
+.thumb{aspect-ratio:4/3;background:var(--tint);display:grid;place-items:center;overflow:hidden;position:relative}
+.thumb img{width:100%;height:100%;object-fit:contain;background:#fff}
+.thumb .ph{font-size:12px;color:#a19c90;display:flex;flex-direction:column;align-items:center;gap:6px}
+.thumb .ph svg{width:36px;height:36px;opacity:.55}
+.office{position:absolute;left:8px;top:8px;background:var(--green);color:#fff;font-size:11.5px;padding:2px 8px;border-radius:999px}
+.body{padding:11px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.cat{font-size:11.5px;font-weight:700;letter-spacing:.2px}
+.card h3{margin:0;font-size:14.5px;line-height:1.35;letter-spacing:-.2px;word-break:keep-all}
+.meta{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
+.qty{font-size:13px;color:var(--muted)}
+.qty b{color:var(--ink);font-size:16px}
+.add{border:0;background:var(--green);color:#fff;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 0 #164a99}
+.add:active{transform:translateY(1px);box-shadow:0 1px 0 #164a99}
+.add.on{background:var(--green-soft);color:var(--green);box-shadow:none}
+.links{display:flex;gap:10px;font-size:12px}
+.links a{color:var(--muted);text-decoration:none;border-bottom:1px dotted #b9b4a8}
+.links a:hover{color:var(--green)}
+
+/* grouped compare view */
+.group{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+.group h3{margin:0 0 8px;font-size:15px}
+.group table{width:100%;border-collapse:collapse;font-size:13.5px}
+.group td{padding:6px 4px;border-top:1px solid #efece4}
+.group td.q{text-align:right;font-weight:700;width:60px}
+.group td.a{width:70px;text-align:right}
+.empty{padding:50px 20px;text-align:center;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:var(--radius)}
+.more{display:block;margin:16px auto 0;border:1.5px solid var(--line);background:var(--paper);border-radius:10px;padding:9px 18px;cursor:pointer}
+
+/* basket */
+aside{position:sticky;top:150px}
+@media(max-width:900px){aside{position:static}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.panel h2{font-size:20px;margin:0 0 4px;font-family:var(--display);font-weight:400;color:var(--green)}
+.panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.bk{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
+.bk li{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #efece4;font-size:13.5px}
+.bk li small{display:block;color:var(--muted);font-size:11.5px}
+.bk input{width:54px;padding:4px 6px;border:1px solid var(--line);border-radius:7px;text-align:right;background:var(--tint);color:var(--ink)}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 4px}
+.warn{background:var(--amber-soft);color:#7a4510;font-size:12.5px;padding:8px 10px;border-radius:9px;margin:10px 0 0}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;margin-top:12px;background:var(--green);color:#fff;font-size:15px;box-shadow:0 3px 0 #164a99}
+.btn.orange{background:var(--amber);box-shadow:0 3px 0 #b8650e}
+.btn.ghost{box-shadow:none}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);font-weight:600}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.rl{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.rl a{display:block;text-align:center;border:1.5px solid var(--line);border-radius:11px;padding:10px;text-decoration:none;font-weight:600;font-size:14px}
+.rl a:hover{border-color:var(--green-2);color:var(--green)}
+.noimg .thumb{display:none}
+.card .body{border-top:4px solid var(--cc,var(--line))}
+.office{display:none}
+.noimg .thumb .ph{display:none}
+.fab{display:none}
+@media(max-width:900px){.controls{position:static}.chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.fab{position:fixed;right:16px;bottom:16px;z-index:20;background:var(--green);color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.2)}.fab.show{display:block}}
+.thumb .ph b{font-size:22px;color:#b8b2a4;font-weight:800;letter-spacing:-.5px}
+.note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
+
+/* dialog */
+dialog{color:var(--ink);border:0;border-radius:18px;padding:0;max-width:760px;width:calc(100% - 24px);box-shadow:0 20px 60px rgba(0,0,0,.25);background:var(--paper)}
+dialog::backdrop{background:rgba(20,25,23,.45)}
+.dlg{padding:22px}
+.dlg h2{margin:0 0 4px;font-size:22px;font-family:var(--display);font-weight:400;color:var(--green)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.form label{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.form label.full{grid-column:1/-1}
+.form input,.form textarea,.form select{padding:9px 10px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:14px}
+.form select:disabled{background:var(--tint);color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink);appearance:none}
+.form textarea{min-height:60px;resize:vertical}
+@media(max-width:600px){.form{grid-template-columns:1fr}}
+[data-mode=gm] .only-sq-out,[data-mode=sq] .only-gm-out{display:none}
+.sqbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;max-height:380px;overflow:auto;font-size:12.5px}
+.sqbox h3{text-align:center;margin:4px 0 10px;font-size:17px}
+.sqt{width:100%;border-collapse:collapse}
+.sqt th,.sqt td{border:1px solid #777;padding:5px 7px;vertical-align:middle}
+.sqt th{background:#f2f2f2;white-space:nowrap;font-weight:700}
+.sqt th.sec{background:#dce6f2;text-align:center}
+.sqt .c,.sqbox .c{text-align:center}
+.sqt .s{font-size:11.5px;line-height:1.55}
+.sqt.in td{height:26px;text-align:center}
+pre.doc{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;font:13.5px/1.7 "Pretendard","Malgun Gothic",sans-serif;max-height:340px;overflow:auto;margin:0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .btn{width:auto;flex:1 1 140px;margin:0}
+.closer{float:right;border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1}
+.st-list{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:13.5px}
+.st-list li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #efece4;padding:5px 0}
+.ok{color:var(--green-2)} .bad{color:var(--red)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:50}
+footer{background:#fff;border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);font-size:12.5px}
+@media print{
+  body *{visibility:hidden}
+  #printArea,#printArea *{visibility:visible}
+  #printArea{position:absolute;left:0;top:0;width:100%;padding:20mm;font:12pt/1.8 "Malgun Gothic",serif;white-space:pre-wrap}
+  #printArea .sqbox{white-space:normal}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <span class="mark">K·S</span>
+      <span><b>K-STEM Bank 교구 찾기</b><small>서울 11개 교육지원청 통합 검색 · 로그인 없음</small></span>
+    </a>
+    <button class="status" id="statusBtn" title="지원청별 수집 상태 보기"><span class="dot" id="dot"></span><span id="statusText">불러오는 중…</span></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+   <div>
+    <p class="eyebrow">과학·수학·AI·SW 교구은행</p>
+    <div class="wordmark" aria-label="K-STEM BANK">K-STEM <span>BANK</span></div>
+    <h1 id="heroTitle">우리 교육지원청 K-STEM Bank에<br>어떤 교구가 있는지 바로 찾아보세요.</h1>
+    <p>교육지원청 K-STEM Bank의 공개 교구 목록을 10분마다 모아 보여 줍니다. 신청은 원본 대여 페이지에서 합니다.</p>
+    <div class="statline"><span><b id="sItems">–</b>개 교구</span><span><b id="sQty">–</b>개 보유 수량 합계</span></div>
+    <div class="myoff"><span>내 교육지원청</span><b id="myOfficeName">선택 안 됨</b><button class="linkbtn" id="changeOffice">변경</button></div>
+    <div class="steps" aria-label="이용 순서">
+      <span class="step"><i style="background:#2f86e0">1</i>교구 찾기</span>
+      <span class="step"><i style="background:#2fa06a">2</i>바구니 담기</span>
+      <span class="step"><i style="background:#f08a1c">3</i>공문·신청서 만들기</span>
+      <span class="step"><i style="background:#8a52c6">4</i>원본 페이지에서 신청</span>
+    </div>
+   </div>
+   <svg class="hero-art" viewBox="0 0 420 280" role="img" aria-label="과학·수학·정보 교구 일러스트">
+    <defs>
+      <linearGradient id="gT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe0fb"/><stop offset="1" stop-color="#8cc4f2"/></linearGradient>
+      <linearGradient id="gS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#f6a92e"/></linearGradient>
+      <radialGradient id="gB" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#9fd0f6"/></radialGradient>
+      <g id="cube"><path d="M0 -24 L28 -8 L0 8 L-28 -8Z" fill="#e6f3fe"/><path d="M-28 -8 L0 8 L0 40 L-28 24Z" fill="#7fb8ec"/><path d="M28 -8 L0 8 L0 40 L28 24Z" fill="#4c95dc"/></g>
+    </defs>
+    <ellipse cx="210" cy="252" rx="180" ry="20" fill="#b9dbf5" opacity=".7"/>
+    <!-- 큰 블록 무대 -->
+    <g transform="translate(205 150)">
+      <path d="M0 -40 L110 20 L0 80 L-110 20Z" fill="#f4faff"/>
+      <path d="M-110 20 L0 80 L0 104 L-110 44Z" fill="#9cc9f0"/><path d="M110 20 L0 80 L0 104 L110 44Z" fill="#6aa9e6"/>
+    </g>
+    <use href="#cube" transform="translate(140 150)"/>
+    <use href="#cube" transform="translate(196 182)"/>
+    <use href="#cube" transform="translate(168 120) scale(.8)"/>
+    <!-- 원뿔(수학) -->
+    <g transform="translate(270 168)"><path d="M0 -70 L30 0 A30 9 0 0 1 -30 0Z" fill="url(#gS)"/><path d="M0 -70 L30 0 A30 9 0 0 1 0 9Z" fill="#e08d16" opacity=".55"/></g>
+    <!-- 구(과학) -->
+    <circle cx="318" cy="120" r="26" fill="url(#gB)"/><ellipse cx="318" cy="120" rx="44" ry="10" fill="none" stroke="#8a52c6" stroke-width="3" transform="rotate(-18 318 120)"/>
+    <!-- 원자 -->
+    <g transform="translate(92 70)" fill="none" stroke="#2f86e0" stroke-width="2.5"><ellipse rx="34" ry="12"/><ellipse rx="34" ry="12" transform="rotate(60)"/><ellipse rx="34" ry="12" transform="rotate(-60)"/><circle r="6" fill="#e0453a" stroke="none"/></g>
+    <!-- 수식·코드 말풍선 -->
+    <g transform="translate(232 40)"><rect x="-34" y="-20" width="68" height="40" rx="12" fill="#fff"/><path d="M-6 20 L0 30 L6 20Z" fill="#fff"/><text x="0" y="7" text-anchor="middle" font-family="Jua, sans-serif" font-size="20" fill="#1f63c8">√x</text></g>
+    <g transform="translate(372 196)"><rect x="-30" y="-17" width="60" height="34" rx="10" fill="#fff"/><text x="0" y="7" text-anchor="middle" font-family="monospace" font-weight="700" font-size="17" fill="#2fa06a">&lt;/&gt;</text></g>
+    <!-- 작은 큐브들 -->
+    <use href="#cube" transform="translate(48 196) scale(.45)"/><use href="#cube" transform="translate(372 64) scale(.4)"/>
+    <circle cx="150" cy="40" r="5" fill="#f08a1c"/><circle cx="392" cy="128" r="4" fill="#e0453a"/><circle cx="30" cy="130" r="4" fill="#8a52c6"/>
+   </svg>
+  </div>
+</section>
+
+<div class="controls">
+  <div class="wrap">
+    <div class="searchrow">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="교구 이름으로 검색 (예: 이산화탄소, 마이크로비트, 현미경)" autocomplete="off">
+      </div>
+      <select class="sort" id="sort" aria-label="정렬">
+        <option value="recent">최근 등록순</option>
+        <option value="qty">수량 많은순</option>
+        <option value="name">이름순</option>
+      </select>
+    </div>
+    <div class="rowlabel">구분</div>
+    <div class="chips" id="cats"></div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <section>
+      <div class="resultbar">
+        <span id="resultInfo"></span>
+      </div>
+      <div id="results"></div>
+    </section>
+
+    <aside id="basket">
+      <div class="panel">
+        <h2>대여 바구니</h2>
+        <p class="sub" id="bkSub">교구를 담으면 신청서 초안을 만들 수 있어요.</p>
+        <ul class="bk" id="bk"></ul>
+        <div id="bkWarn"></div>
+        <button class="btn" id="makeGm" disabled>공문 만들기</button>
+        <button class="btn orange" id="makeDoc" disabled>신청서 초안 만들기</button>
+        <div id="rentalLinks"></div>
+        <p class="note">표시 수량은 지원청이 등록한 <b>보유 수량</b>이에요. 희망 날짜에 대여 가능한지는 원본 대여 페이지나 담당 센터에서 꼭 확인하세요. 이 사이트는 공식 예약 시스템이 아니며, 입력한 내용은 이 브라우저에만 저장됩니다.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    자료 출처: 서울특별시교육청 각 교육지원청 K-STEM Bank 교구목록(공개 페이지). 이 사이트는 비공식 도우미로, 원본 사이트의 정보를 그대로 옮겨 보여 줍니다. <span id="footUpdated"></span>
+  </div>
+</footer>
+
+<dialog id="docDlg">
+  <div class="dlg">
+    <button class="closer" data-close aria-label="닫기">×</button>
+    <h2 id="docTitle">교구 대여 신청서 초안</h2>
+    <p class="sub" style="color:var(--muted);font-size:13px;margin:0">적은 내용은 이 브라우저에만 저장됩니다. 서명·직인은 포함되지 않아요.</p>
+    <div class="tabs" role="tablist"><button data-tab="gm">공문</button><button data-tab="sq">신청서</button></div>
+    <form class="form" id="docForm" onsubmit="return false" data-mode="sq">
+      <label>학교명 <span class="hint" id="schoolHint">예: 창림 → 서울창림초등학교</span><input name="school" placeholder="창림"></label>
+      <label>센터명 <span class="hint">교육지원청 기준 자동 입력</span><select name="gmCenter" id="gmCenter"></select></label>
+      <label class="full only-gm">관련 문서<input name="gmRef1" placeholder="서울특별시교육청 ○○과-0000(2026. 0. 0.)"></label>
+      <label class="only-sq">성명<input name="teacher" placeholder="홍길동"></label>
+      <label class="only-sq">학년 또는 담당교과<input name="gradeSubj" placeholder="4학년 / 과학전담"></label>
+      <label class="only-sq">학교전화<input name="phone" placeholder="02-000-0000"></label>
+      <label class="only-sq">휴대폰<input name="mobile" placeholder="010-0000-0000"></label>
+      <label class="only-sq">대여 시작일<input name="from" type="date"></label>
+      <label class="only-sq">반납 예정일 <span class="hint" id="toHint">시작일부터 최대 14일</span><input name="to" type="date"></label>
+    </form>
+    <pre class="doc only-gm-out" id="docOut"></pre>
+    <div class="sqbox only-sq-out" id="sqOut"></div>
+    <div class="actions">
+      <button class="btn only-sq-out" id="sqWord">Word(.docx)로 저장</button>
+      <button class="btn only-gm-out" id="copyDoc">텍스트 복사</button>
+      <button class="btn ghost only-sq-out" id="copyItems">교구 목록만 복사</button>
+      <span class="copied" id="copied" role="status" aria-live="polite"></span>
+      <button class="btn ghost only-gm-out" id="wordDoc">Word(.docx)로 저장</button>
+      <button class="btn ghost" id="printDoc">인쇄 / PDF</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="pickDlg">
+  <div class="dlg">
+    <button class="closer" data-close id="pickClose" aria-label="닫기">×</button>
+    <h2>우리 학교 교육지원청을 선택하세요</h2>
+    <p class="sub" style="color:var(--muted);font-size:13px;margin:0">교구는 소속 교육지원청에서만 빌릴 수 있어요. 선택은 이 브라우저에 기억되고, 언제든 바꿀 수 있어요.</p>
+    <div class="picker" id="picker"></div>
+  </div>
+</dialog>
+
+<dialog id="stDlg">
+  <div class="dlg">
+    <button class="closer" data-close aria-label="닫기">×</button>
+    <h2>지원청별 수집 상태</h2>
+    <p class="sub" id="stSub" style="color:var(--muted);font-size:13px;margin:0"></p>
+    <ul class="st-list" id="stList"></ul>
+  </div>
+</dialog>
+
+<div id="printArea" hidden></div>
+<a class="fab" id="fab" href="#basket">바구니 0</a>
+<div class="toast" id="toast"></div>
+
+<!--SEED-->
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('kstem:'+k); return v ? JSON.parse(v) : d; }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem('kstem:'+k, JSON.stringify(v)); }catch{} }
+};
+const CATS = ['전체','과학','수학','AI·SW','센서'];
+const catColor = c => ({'과학':'var(--cat-과학)','수학':'var(--cat-수학)','AI·SW':'var(--cat-AI)','센서':'var(--cat-센서)'}[c] || 'var(--muted)');
+const rentalUrl = id => `https://${id}.sen.go.kr/FUS/GYOGU/GYOGUINSERT.do`;
+const detailUrl = (id, seq) => `https://ssei.sen.go.kr/fus/MI000000000000000351/gyoguManageDetail.do?board_id=${id}&jojik_cd=${id}&gyogu_seq=${seq}`;
+const fullName = n => `서울특별시${n}교육지원청`;
+
+let DATA = null, ITEMS = [];
+const state = { q:'', cat:'전체', office: store.get('office', null), sort:'recent', group:false, limit:60 };
+let basket = store.get('basket', []); // [{key, office, officeName, seq, name, cat, stock, qty}]
+
+/* ---------- data ---------- */
+function ingest(d){
+  DATA = d;
+  ITEMS = [];
+  for (const o of d.offices) for (const it of o.items)
+    ITEMS.push({ ...it, office:o.id, officeName:o.name, key:o.id+':'+it.seq, norm:norm(it.name) });
+  // refresh stock numbers in basket
+  basket = basket.filter(b => ITEMS.some(i => i.key === b.key)).map(b => ({...b, stock: ITEMS.find(i=>i.key===b.key).qty}));
+  if (state.office && !d.offices.some(o=>o.id===state.office)) state.office = null;
+  renderStatus(); renderOffice(); renderChips(); render(); renderBasket();
+  if (!state.office && !$('#pickDlg').open) openPicker();
+}
+function norm(s){ return s.toLowerCase().replace(/[\s()\[\]_\-·,/]/g,'').replace(/co2/g,'이산화탄소').replace(/ph/g,'ph'); }
+
+async function load(){
+  try{
+    const r = await fetch('data.json?t=' + Math.floor(Date.now()/60000), {cache:'no-store'});
+    if (!r.ok) throw 0;
+    ingest(await r.json());
+  }catch{
+    if (window.SEED) ingest(window.SEED);
+    else { $('#statusText').textContent = '목록을 불러오지 못했어요'; $('#dot').classList.add('warn'); }
+  }
+}
+load();
+setInterval(load, 10*60*1000); // 페이지를 열어 둔 동안 10분마다 새로 고침
+
+/* ---------- status ---------- */
+function ago(iso){
+  if(!iso) return '-';
+  const m = Math.round((Date.now() - new Date(iso))/60000);
+  if (m < 1) return '방금';
+  if (m < 60) return m + '분 전';
+  if (m < 1440) return Math.floor(m/60) + '시간 전';
+  return Math.floor(m/1440) + '일 전';
+}
+const fmt = iso => iso ? new Date(iso).toLocaleString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
+function renderStatus(){
+  const bad = DATA.offices.filter(o => !o.ok).length;
+  $('#dot').classList.toggle('warn', bad > 0 || !!DATA.seed);
+  $('#statusText').textContent = DATA.seed ? `스냅샷 · ${fmt(DATA.updatedAt)}` : `${ago(DATA.updatedAt)} 갱신${bad ? ` · ${bad}곳 지연` : ''}`;
+  $('#footUpdated').textContent = `마지막 수집: ${fmt(DATA.updatedAt)}`;
+  $('#stSub').textContent = DATA.seed
+    ? `현재 화면은 ${fmt(DATA.updatedAt)}에 모은 스냅샷이에요. 자동 갱신 서버를 연결하면 10분마다 바뀝니다.`
+    : `전체 갱신: ${fmt(DATA.updatedAt)} · 실패한 곳은 직전 목록을 그대로 보여 줘요.`;
+  $('#stList').innerHTML = DATA.offices.map(o => `<li><span>${esc(o.name)} <small style="color:var(--muted)">${o.items.length}건</small></span><span class="${o.ok?'ok':'bad'}">${o.ok?'정상':'지연 · '+ago(o.fetchedAt)}</span></li>`).join('');
+}
+$('#statusBtn').onclick = () => $('#stDlg').showModal();
+
+/* ---------- filters ---------- */
+function renderChips(){
+  const base = myItems();
+  $('#cats').innerHTML = CATS.map(c => {
+    const n = c==='전체' ? base.length : base.filter(i=>i.cat===c).length;
+    return `<button class="chip" data-cat="${c}" aria-pressed="${state.cat===c}">${c}<span class="n">${n}</span></button>`;
+  }).join('');
+}
+function myItems(){ return ITEMS.filter(i => i.office===state.office); }
+function renderOffice(){
+  const o = DATA.offices.find(x=>x.id===state.office);
+  const mine = myItems();
+  $('#myOfficeName').textContent = o ? fullName(o.name) : '선택 안 됨';
+  $('#heroTitle').innerHTML = o ? `${esc(o.name)}교육지원청 K-STEM Bank에<br>어떤 교구가 있는지 바로 찾아보세요.` : '우리 교육지원청 K-STEM Bank에<br>어떤 교구가 있는지 바로 찾아보세요.';
+  $('#sItems').textContent = mine.length.toLocaleString();
+  $('#sQty').textContent = mine.reduce((s,i)=>s+i.qty,0).toLocaleString();
+}
+function openPicker(){
+  $('#picker').innerHTML = DATA.offices.map(o => `<button data-pick="${o.id}" aria-pressed="${state.office===o.id}">${esc(o.name)}<small>교구 ${o.items.length}종</small></button>`).join('');
+  $('#pickClose').hidden = !state.office;
+  $('#pickDlg').showModal();
+}
+function setOffice(id){
+  if (id !== state.office){
+    const before = basket.length;
+    basket = basket.filter(b => b.office === id); store.set('basket', basket);
+    if (before && !basket.length) toast('교육지원청을 바꿔 바구니를 비웠어요');
+  }
+  state.office = id; store.set('office', id);
+  state.cat='전체'; state.limit=60;
+  $('#pickDlg').close();
+  renderOffice(); renderChips(); render(); renderBasket();
+}
+$('#picker').onclick = e => { const b = e.target.closest('[data-pick]'); if (b) setOffice(b.dataset.pick); };
+$('#pickDlg').addEventListener('cancel', e => { if (!state.office) e.preventDefault(); });
+$('#changeOffice').onclick = openPicker;
+$('#cats').onclick = e => { const b = e.target.closest('[data-cat]'); if(!b) return; state.cat = b.dataset.cat; state.limit=60; renderChips(); render(); };
+let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(()=>{ state.q = e.target.value.trim(); state.limit=60; render(); }, 120); };
+$('#sort').onchange = e => { state.sort = e.target.value; render(); };
+
+function filtered(){
+  const terms = state.q ? state.q.split(/\s+/).map(norm).filter(Boolean) : [];
+  let list = ITEMS.filter(i =>
+    (state.cat==='전체' || i.cat===state.cat) &&
+    i.office===state.office &&
+    terms.every(t => i.norm.includes(t)));
+  if (state.sort==='qty') list.sort((a,b)=>b.qty-a.qty);
+  else if (state.sort==='name') list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  else list.sort((a,b)=>(+b.seq)-(+a.seq));
+  return list;
+}
+
+/* ---------- results ---------- */
+const PH = '<div class="ph"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="11" width="34" height="26" rx="4"/><circle cx="18" cy="21" r="3"/><path d="m9 35 10-9 7 6 6-5 8 7"/></svg>사진 없음</div>';
+const SHOWIMG = !window.SEED; // 미리보기(Claude 아티팩트)는 외부 이미지를 막으므로 생략
+document.body.classList.toggle('noimg', !SHOWIMG);
+const ph = c => `<div class="ph"><b>${esc(c)}</b></div>`;
+function card(i){
+  const inB = basket.some(b=>b.key===i.key);
+  const img = (SHOWIMG && i.img) ? `<img loading="lazy" src="${esc(i.img)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.insertAdjacentHTML('afterbegin',PH);this.remove()">` : ph(i.cat);
+  return `<article class="card ${inB?'in':''}" style="--cc:${catColor(i.cat)}">
+    <div class="thumb">${img}<span class="office">${esc(i.officeName)}</span></div>
+    <div class="body">
+      <div class="cat" style="color:${catColor(i.cat)}">${esc(i.cat)}</div>
+      <h3>${esc(i.name)}</h3>
+      <div class="links"><a href="${detailUrl(i.office,i.seq)}" target="_blank" rel="noopener">원본 상세 ↗</a></div>
+      <div class="meta"><span class="qty">보유 <b>${i.qty}</b>개</span>
+        <button class="add ${inB?'on':''}" data-key="${i.key}">${inB?'✓ 담김':'+ 담기'}</button></div>
+    </div></article>`;
+}
+function groupKey(name){ return norm(name).replace(/무선|유선|센서|\(.*?\)/g,'').replace(/[a-z]{2,}\d+[a-z]*/g,''); }
+function render(){
+  const list = filtered();
+  const box = $('#results');
+  $('#resultInfo').textContent = `${list.length.toLocaleString()}개 교구` + (state.q?` · “${state.q}”`:'');
+  if (!list.length){ box.innerHTML = `<div class="empty">조건에 맞는 교구가 없어요.<br><small>다른 표현으로 찾아보세요 (예: CO2 → 이산화탄소, 3D펜 → 3D 펜)</small></div>`; return; }
+  if (state.group){
+    const g = new Map();
+    for (const i of list){ const k = groupKey(i.name) || i.norm; if(!g.has(k)) g.set(k, []); g.get(k).push(i); }
+    const groups = [...g.values()].sort((a,b)=>b.length-a.length || b.reduce((s,i)=>s+i.qty,0)-a.reduce((s,i)=>s+i.qty,0));
+    box.innerHTML = groups.slice(0, state.limit).map(arr => `<div class="group"><h3>${esc(arr[0].name)} <small style="color:var(--muted);font-weight:400">· ${new Set(arr.map(i=>i.office)).size}개 지원청 · 합계 ${arr.reduce((s,i)=>s+i.qty,0)}개</small></h3>
+      <table>${arr.sort((a,b)=>b.qty-a.qty).map(i=>{const inB=basket.some(b=>b.key===i.key);return `<tr><td><b>${esc(i.officeName)}</b> <span style="color:var(--muted)">${esc(i.name)}</span></td><td class="q">${i.qty}개</td><td class="a"><button class="add ${inB?'on':''}" data-key="${i.key}">${inB?'✓':'+ 담기'}</button></td></tr>`}).join('')}</table></div>`).join('')
+      + (groups.length > state.limit ? `<button class="more" id="more">더 보기 (${groups.length-state.limit})</button>` : '');
+  } else {
+    box.innerHTML = `<div class="grid">${list.slice(0, state.limit).map(card).join('')}</div>`
+      + (list.length > state.limit ? `<button class="more" id="more">더 보기 (${list.length-state.limit})</button>` : '');
+  }
+}
+$('#results').onclick = e => {
+  if (e.target.id==='more'){ state.limit += 60; render(); return; }
+  const b = e.target.closest('[data-key]'); if(!b) return;
+  toggle(b.dataset.key);
+};
+
+/* ---------- basket ---------- */
+function toggle(key){
+  const idx = basket.findIndex(b=>b.key===key);
+  if (idx>=0) basket.splice(idx,1);
+  else { const i = ITEMS.find(x=>x.key===key); basket.push({key, office:i.office, officeName:i.officeName, seq:i.seq, name:i.name, cat:i.cat, stock:i.qty, qty:Math.min(i.qty, 1)}); toast(`${i.name} 담음`); }
+  store.set('basket', basket); render(); renderBasket();
+}
+function offices(){ return [...new Set(basket.map(b=>b.office))]; }
+function renderBasket(){
+  const ul = $('#bk');
+  $('#fab').textContent = `바구니 ${basket.length}`; $('#fab').classList.toggle('show', basket.length>0);
+  if (!basket.length){ ul.innerHTML=''; $('#bkSub').textContent='교구를 담으면 신청서 초안을 만들 수 있어요.'; $('#bkWarn').innerHTML=''; $('#makeDoc').disabled=$('#makeGm').disabled=true; $('#rentalLinks').innerHTML=''; return; }
+  ul.innerHTML = basket.map(b => `<li><span>${esc(b.name)}<small>보유 ${b.stock}개</small></span><input type="number" min="1" max="${b.stock}" value="${b.qty}" data-q="${b.key}" aria-label="신청 수량"><button class="x" data-rm="${b.key}" aria-label="빼기">×</button></li>`).join('');
+  const offs = offices();
+  $('#bkSub').textContent = `${basket.length}종 · ${basket.reduce((s,b)=>s+(+b.qty||0),0)}개`;
+  $('#bkWarn').innerHTML = '';
+  $('#makeDoc').disabled = $('#makeGm').disabled = false;
+  $('#rentalLinks').innerHTML = `<div class="rl">${offs.map(id=>`<a href="${rentalUrl(id)}" target="_blank" rel="noopener">${esc(basket.find(b=>b.office===id).officeName)} 원본 대여 페이지 ↗</a>`).join('')}</div>`;
+}
+$('#bk').oninput = e => { const k=e.target.dataset.q; if(!k) return; const b=basket.find(x=>x.key===k); b.qty=Math.max(1, Math.min(b.stock, parseInt(e.target.value)||1)); store.set('basket',basket); $('#bkSub').textContent = `${basket.length}종 · ${basket.reduce((s,b)=>s+(+b.qty||0),0)}개`; };
+$('#bk').onchange = () => renderBasket();
+$('#bk').onclick = e => { const k=e.target.dataset.rm; if(k) toggle(k); };
+if (window.SEED) { $('#printDoc').hidden = true; }
+
+/* ---------- document ---------- */
+const form = $('#docForm');
+const saved = store.get('form', {});
+for (const el of form.querySelectorAll('[name]')) if (saved[el.name]) el.value = saved[el.name];
+function formData(){ const o={}; for (const el of form.querySelectorAll('[name]')) o[el.name]=el.value.trim(); return o; }
+function saveForm(){ const f=formData(); for (const k of ['gmCenter','gmRef1']) delete f[k]; store.set('form', f); }
+// 학교명: "창림", "창림초", "서울창림초등학교" 어느 것을 넣어도 "서울창림초등학교"로 맞춤
+function schoolName(raw){
+  let s = (raw || '').replace(/\s+/g,'');
+  if (!s) return '';
+  s = s.replace(/^서울(특별시)?/, '');
+  const lvl = /(중학교|고등학교|초등학교)$/.exec(s);
+  if (lvl) return '서울' + s;
+  s = s.replace(/(초등|초|중|고)$/, m => ({'초':'초등','초등':'초등','중':'중','고':'고등'}[m]) + '\u0000');
+  if (s.includes('\u0000')) return '서울' + s.replace('\u0000','학교');
+  return '서울' + s + '초등학교';
+}
+const SCHOOL_PH = '서울OO초등학교';
+const iso = d => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+const addDays = (s, n) => { const d = new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return iso(d); };
+const fromEl = form.querySelector('[name=from]'), toEl = form.querySelector('[name=to]');
+function limitDates(){
+  fromEl.min = iso(new Date());
+  if (!fromEl.value){ toEl.removeAttribute('min'); toEl.removeAttribute('max'); $('#toHint').textContent='시작일부터 최대 14일'; return; }
+  const max = addDays(fromEl.value, 14);
+  toEl.min = fromEl.value; toEl.max = max;
+  if (toEl.value && (toEl.value < fromEl.value || toEl.value > max)) toEl.value = max;
+  $('#toHint').textContent = `~ ${max.replaceAll('-','. ')}.까지`;
+}
+fromEl.addEventListener('change', () => { if (!toEl.value) toEl.value = addDays(fromEl.value, 14); limitDates(); refreshDoc(); });
+toEl.addEventListener('change', () => { limitDates(); refreshDoc(); });
+limitDates();
+const d8 = s => s ? s.replaceAll('-','. ')+'.' : '0000. 00. 00.';
+// 각 교육지원청 누리집 메뉴에 표시된 센터명 (2026. 11. 24. 확인). 두 곳이 있는 지원청은 첫 번째가 기본값
+const CENTERS = {
+  dbedu:['동부수학과학융합교육센터'], sbedu:['서부수학과학융합교육센터'], nbedu:['남부과학교육센터'],
+  bbedu:['북부수학과학융합교육센터'], jbedu:['중부과학교육센터'],
+  gdspedu:['강동송파과학교육센터','강동송파수학과학융합교육센터'],
+  gsycedu:['강서양천과학교육센터'], gnscedu:['강남서초과학교육센터'],
+  dgedu:['동작관악수학과학융합교육센터'], sdgjedu:['성동광진과학교육센터'], sbgbedu:['성북강북과학교육센터'] };
+const GM_REF = '서울특별시교육청 창의미래교육과-9968(2026. 6. 15.)';
+let docMode = 'sq';
+function loadGmFields(){
+  const opts = CENTERS[state.office] || ['○○과학교육센터'];
+  const s = store.get('gm2:'+state.office, {});
+  $('#gmCenter').innerHTML = opts.map(o=>`<option>${esc(o)}</option>`).join('');
+  $('#gmCenter').value = opts.includes(s.gmCenter) ? s.gmCenter : opts[0];
+  $('#gmCenter').disabled = opts.length < 2;
+  form.querySelector('[name=gmRef1]').value = s.gmRef1 || GM_REF;
+}
+function buildGm(){
+  const f = formData(); saveForm();
+  store.set('gm2:'+state.office, { gmCenter: f.gmCenter, gmRef1: f.gmRef1 });
+  const school = schoolName(f.school) || SCHOOL_PH;
+  return `제목  (${school}) K-STEM Bank 교구 대여 신청
+
+1. 관련: ${f.gmRef1 || GM_REF}
+2. ${f.gmCenter} K-STEM Bank 교구 대여 신청서를 [붙임]과 같이 제출합니다.
+
+붙임  (${school}) 교구 대여 신청서 1부.  끝.`;
+}
+/* ---------- Word(.docx) 만들기: 외부 라이브러리 없이 브라우저에서 직접 생성 ---------- */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8){ let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zip(files){ // 무압축(stored) zip
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  for (const [name, text] of files){
+    const nm = enc.encode(name), data = enc.encode(text), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true); lh.setUint16(8,0,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true); lh.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(lh.buffer), nm, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(8,0x0800,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true); ch.setUint16(28,nm.length,true); ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer), nm);
+    off += 30 + nm.length + data.length;
+  }
+  const csize = central.reduce((s,a)=>s+a.length,0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true); end.setUint16(8,files.length,true); end.setUint16(10,files.length,true); end.setUint32(12,csize,true); end.setUint32(16,off,true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], {type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+const X = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const FONT = '맑은 고딕';
+function r(text, o = {}){ // run
+  const pr = `<w:rPr><w:rFonts w:ascii="${FONT}" w:eastAsia="${FONT}" w:hAnsi="${FONT}"/>${o.b?'<w:b/>':''}${o.color?`<w:color w:val="${o.color}"/>`:''}<w:sz w:val="${o.sz||20}"/><w:szCs w:val="${o.sz||20}"/></w:rPr>`;
+  return String(text).split('\n').map((t,i)=>`${i?'<w:br/>':''}<w:r>${pr}<w:t xml:space="preserve">${X(t)}</w:t></w:r>`).join('');
+}
+function p(runs, o = {}){
+  return `<w:p><w:pPr><w:spacing w:before="${o.before||0}" w:after="${o.after||0}" w:line="${o.line||276}" w:lineRule="auto"/>${o.ind?`<w:ind w:left="${o.ind}" w:hanging="${o.hang||0}"/>`:''}<w:jc w:val="${o.align||'left'}"/></w:pPr>${runs}</w:p>`;
+}
+function tc(content, o = {}){
+  content = content ?? '';
+  const paras = Array.isArray(content) ? content.join('') : (content.startsWith('<w:') ? content : p(r(content,{sz:o.sz,b:o.b}),{align:o.align||'center'}));
+  return `<w:tc><w:tcPr><w:tcW w:w="${o.w}" w:type="dxa"/>${o.span?`<w:gridSpan w:val="${o.span}"/>`:''}${o.vm?`<w:vMerge${o.vm==='restart'?' w:val="restart"':''}/>`:''}${o.fill?`<w:shd w:val="clear" w:color="auto" w:fill="${o.fill}"/>`:''}<w:vAlign w:val="${o.va||'center'}"/><w:tcMar><w:top w:w="50" w:type="dxa"/><w:bottom w:w="50" w:type="dxa"/></w:tcMar></w:tcPr>${paras}${paras.endsWith('</w:p>')?'':'<w:p/>'}</w:tc>`;
+}
+function tr(cells, h){ return `<w:tr>${h?`<w:trPr><w:trHeight w:val="${h}" w:hRule="atLeast"/></w:trPr>`:''}${cells.join('')}</w:tr>`; }
+function tbl(widths, rows){
+  const b = v => `<w:${v} w:val="single" w:sz="6" w:space="0" w:color="555555"/>`;
+  return `<w:tbl><w:tblPr><w:tblW w:w="${widths.reduce((a,c)=>a+c,0)}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${['top','left','bottom','right','insideH','insideV'].map(b).join('')}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.join('')}</w:tbl>`;
+}
+function docxFile(bodyXml){
+  return zip([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ['word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${bodyXml}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1000" w:right="850" w:bottom="900" w:left="850" w:header="400" w:footer="400" w:gutter="0"/></w:sectPr></w:body></w:document>`],
+  ]);
+}
+
+/* 신청서 내용 (센터 양식 기준) */
+const DOW = '일월화수목금토';
+function sqData(){
+  const f = formData();
+  const items = basket.filter(b => b.office === state.office);
+  const d = s => s ? new Date(s+'T00:00:00') : null;
+  const a = d(f.from), b = d(f.to);
+  const days = a && b ? Math.round((b-a)/86400000) + 1 : null;
+  const t = new Date();
+  return { center: f.gmCenter || '○○과학교육센터', school: schoolName(f.school), name: f.teacher.replace(/^교사\s*/,''), gradeSubj: f.gradeSubj, phone: f.phone, mobile: f.mobile,
+    a, b, days, items, today: `${t.getFullYear()}. ${t.getMonth()+1}. ${t.getDate()}.` };
+}
+const md = x => x ? `${x.getMonth()+1}월 ${x.getDate()}일` : '    월    일';
+function sqTexts(s){
+  return {
+    title: `${s.center} 교구 대여 신청서`,
+    period: `${s.a ? s.a.getFullYear() : 2026}년 ${md(s.a)} ~ ${md(s.b)} (${s.days ?? '   '}일간)`,
+    ret: `※ 교구 반납일: ${s.b ? `${s.b.getFullYear()}년 ${md(s.b)}(${DOW[s.b.getDay()]})` : '2026년     월     일(  )'}`,
+    privacy: `${s.center} 교구 대여와 관련하여 귀하의 개인정보(성명, 학교명, 학교전화, 휴대폰 번호)를 수집·이용하고자 하오니 동의 여부를 체크하여 주시기 바랍니다. 개인정보 제공 및 활용에 거부할 권리가 있으나, 동의하지 않을 경우, 교구 대여가 불가능합니다.`,
+    notes: ['담당 교사가 직접 방문하여 교구를 수령하고 반납하셔야 합니다. (택배 수령 및 반납 불가)',
+            '대여 교구는 담당 교사가 직접 활용할 수 있어야 하며, 학교에서 탐구 활동 시 학생 대상 안전교육 및 활용 수칙에 대한 사전 교육을 실시해야 합니다.',
+            '교구는 정확한 매뉴얼대로 사용해야 하며 분실이나 파손되지 않도록 유의 부탁드립니다. 분실이나 파손 시, 대여교에서 구입·경비하여 반납해야 합니다.'],
+    agree: '■ 동의함          □ 동의하지 않음',
+    pledge: `위 신청자는 본인의 책임하에 서울특별시 ${s.center}의 교구를 대여하고자 합니다.`,
+  };
+}
+function sqDocx(){
+  const s = sqData(), T = sqTexts(s), H = 'DCE6F2', L = 'F2F2F2';
+  const W = [1700, 3000, 1800, 3706];
+  const lbl = (t, o={}) => tc(t, {w:W[0], fill:L, b:true, ...o});
+  const nW = [1250, 4750, 950, 1300];
+  const n = Math.max(5, s.items.length);
+  const inner = tbl(nW, [
+    tr([tc('구분',{w:nW[0],fill:L,b:true}), tc('교구명',{w:nW[1],fill:L,b:true}), tc('수량',{w:nW[2],fill:L,b:true}), tc('비고',{w:nW[3],fill:L,b:true})], 380),
+    ...Array.from({length:n}, (_,i) => { const it = s.items[i];
+      return tr([tc(it?it.cat:'',{w:nW[0]}), tc(it?it.name:'',{w:nW[1]}), tc(it?String(it.qty):'',{w:nW[2]}), tc('',{w:nW[3], vm: i===0?'restart':'cont'})], 400); })
+  ]);
+  const body = [
+    p(r(T.title,{b:true,sz:34}),{align:'center',after:200}),
+    tbl(W, [
+      tr([tc('신청 교사 정보',{w:10206,span:4,fill:H,b:true})], 400),
+      tr([lbl('학 교 명'), tc(s.school,{w:W[1]+W[2]+W[3],span:3})], 440),
+      tr([lbl('성      명'), tc(s.name,{w:W[1]}), tc('학년 또는\n담당교과',{w:W[2],fill:L,b:true}), tc(s.gradeSubj,{w:W[3]})], 440),
+      tr([lbl('학교전화'), tc(s.phone,{w:W[1]}), tc('휴 대 폰',{w:W[2],fill:L,b:true}), tc(s.mobile,{w:W[3]})], 440),
+      tr([tc('교구 신청 내용',{w:10206,span:4,fill:H,b:true})], 400),
+      tr([lbl('대여 기간'), tc([p(r(T.period),{align:'center'}), p(r(T.ret),{align:'center'})],{w:W[1]+W[2]+W[3],span:3})], 600),
+      tr([lbl('개인정보제공\n동의 여부'), tc([p(r(T.privacy,{sz:17}),{align:'both'}), p(r(T.agree),{align:'center',before:60})],{w:W[1]+W[2]+W[3],span:3})]),
+      tr([lbl('유의 사항'), tc([...T.notes.map(t=>p(r('○ '+t,{sz:17}),{ind:200,hang:200,align:'both'})), p(r(T.agree),{align:'center',before:60})],{w:W[1]+W[2]+W[3],span:3})]),
+      tr([tc([p(r('대여 희망 교구',{b:true}),{align:'center'}), p(r('※교구 목록 참고',{sz:16}),{align:'center'})],{w:W[0],fill:L}), tc([inner, p('')],{w:W[1]+W[2]+W[3],span:3})]),
+    ]),
+    p(r(T.pledge),{align:'center',before:240,after:200}),
+    p(r(s.today),{align:'center',after:160}),
+    p(r(`대여인: 교사 ${s.name || '          '}   (서명)`),{align:'center',after:120}),
+    p(r(`${s.school || SCHOOL_PH}장(직인생략)`,{b:true,sz:24}),{align:'center'}),
+  ].join('');
+  return docxFile(body);
+}
+function gmDocx(){
+  return docxFile(buildGm().split('\n').map(l => p(r(l,{sz:22}),{line:360})).join(''));
+}
+function sqPreview(){
+  const s = sqData(), T = sqTexts(s), n = Math.max(5, s.items.length);
+  const rows = Array.from({length:n}, (_,i)=>{ const it=s.items[i]; return `<tr><td>${it?esc(it.cat):''}</td><td>${it?esc(it.name):''}</td><td>${it?it.qty:''}</td>${i===0?`<td rowspan="${n}"></td>`:''}</tr>`; }).join('');
+  return `<h3>${esc(T.title)}</h3><table class="sqt">
+  <tr><th colspan="4" class="sec">신청 교사 정보</th></tr>
+  <tr><th>학교명</th><td colspan="3">${esc(s.school)}</td></tr>
+  <tr><th>성명</th><td>${esc(s.name)}</td><th>학년 또는<br>담당교과</th><td>${esc(s.gradeSubj)}</td></tr>
+  <tr><th>학교전화</th><td>${esc(s.phone)}</td><th>휴대폰</th><td>${esc(s.mobile)}</td></tr>
+  <tr><th colspan="4" class="sec">교구 신청 내용</th></tr>
+  <tr><th>대여 기간</th><td colspan="3" class="c">${esc(T.period)}<br>${esc(T.ret)}</td></tr>
+  <tr><th>개인정보제공<br>동의 여부</th><td colspan="3" class="s">${esc(T.privacy)}<div class="c">${T.agree}</div></td></tr>
+  <tr><th>유의 사항</th><td colspan="3" class="s">${T.notes.map(t=>`○ ${esc(t)}`).join('<br>')}<div class="c">${T.agree}</div></td></tr>
+  <tr><th>대여 희망 교구<br><small>※교구 목록 참고</small></th><td colspan="3" style="padding:6px"><table class="sqt in"><tr><th>구분</th><th>교구명</th><th>수량</th><th>비고</th></tr>${rows}</table></td></tr>
+  </table>
+  <p class="c">${esc(T.pledge)}</p><p class="c">${s.today}</p><p class="c">대여인: 교사 ${esc(s.name)} (서명)</p><p class="c"><b>${esc(s.school || SCHOOL_PH)}장(직인생략)</b></p>`;
+}
+function itemsTsv(){ return sqData().items.map(it => `${it.cat}\t${it.name}\t${it.qty}`).join('\n'); }
+
+function buildDoc(){ return buildGm(); }
+function refreshDoc(){ if (docMode==='gm') $('#docOut').textContent = buildGm(); else { saveForm(); $('#sqOut').innerHTML = sqPreview(); } }
+form.oninput = () => { const n = schoolName(form.querySelector('[name=school]').value); $('#schoolHint').textContent = n ? `→ ${n}` : '예: 창림 → 서울창림초등학교'; refreshDoc(); };
+function openDoc(mode){
+  docMode = mode; form.dataset.mode = mode; $('#docDlg .dlg').dataset.mode = mode; loadGmFields();
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab===mode));
+  $('#docTitle').textContent = mode==='gm' ? '교구 대여 공문 초안' : '교구 대여 신청서';
+  refreshDoc(); if (!$('#docDlg').open) $('#docDlg').showModal();
+}
+$('#makeDoc').onclick = () => openDoc('sq');
+$('#makeGm').onclick = () => openDoc('gm');
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => openDoc(b.dataset.tab));
+var ct; function copied(msg, ok, sel='#copyDoc', label='텍스트 복사'){ const c=$('#copied'), b=$(sel); c.textContent=msg; c.style.color = ok ? 'var(--green)' : 'var(--red)'; if (ok && /복사/.test(msg)) b.textContent='✓ 복사되었습니다'; clearTimeout(ct); ct=setTimeout(()=>{ c.textContent=''; b.textContent=label; }, 2500); }
+$('#copyDoc').onclick = async () => {
+  const text = buildDoc();
+  try { await navigator.clipboard.writeText(text); copied(`${docMode==='gm'?'공문':'신청서'} 내용이 복사되었습니다. 붙여 넣기(Ctrl+V) 하세요.`, true); }
+  catch {
+    const r = document.createRange(); r.selectNodeContents($('#docOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    try { if (document.execCommand('copy')) { copied('신청서 내용이 복사되었습니다. 붙여 넣기(Ctrl+V) 하세요.', true); return; } } catch {}
+    copied('자동 복사가 막혀 있어요. 선택된 글을 Ctrl+C로 복사하세요.', false);
+  }
+};
+// Claude 미리보기에서는 downloads 기능으로, GitHub 사이트에서는 일반 다운로드로 저장
+let dlCap = null;
+if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dlCap = d; }).catch(() => {});
+async function download(blob, name, btn){
+  const sel = '#'+btn.id, label = btn.textContent;
+  if (dlCap){
+    try { await dlCap.save({ filename: name, data: blob }); copied('Word 파일을 저장했어요.', true, sel, label); }
+    catch (e) { copied(e && e.code==='declined' ? '저장을 취소했어요.' : 'Word 파일을 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.', false, sel, label); }
+    return;
+  }
+  if (window.SEED){ copied('이 화면에서는 파일 저장이 막혀 있어요. 잠시 뒤 다시 눌러 주세요.', false, sel, label); return; }
+  const a = Object.assign(document.createElement('a'), {href:URL.createObjectURL(blob), download:name});
+  document.body.appendChild(a); a.click(); a.remove();
+  copied('Word 파일을 저장했어요. 다운로드 폴더를 확인하세요.', true, sel, label);
+}
+$('#wordDoc').onclick = e => download(gmDocx(), `(${schoolName(formData().school) || SCHOOL_PH}) K-STEM Bank 교구 대여 신청 공문.docx`, e.currentTarget);
+$('#sqWord').onclick = e => download(sqDocx(), `(${schoolName(formData().school) || SCHOOL_PH}) 교구 대여 신청서.docx`, e.currentTarget);
+$('#copyItems').onclick = async () => {
+  try { await navigator.clipboard.writeText(itemsTsv()); copied('교구 목록이 복사되었습니다. 신청서 표의 구분 칸을 클릭하고 붙여 넣으세요.', true, '#copyItems', '교구 목록만 복사'); }
+  catch { copied('자동 복사가 막혀 있어요.', false, '#copyItems', '교구 목록만 복사'); }
+};
+$('#printDoc').onclick = () => { const p=$('#printArea'); if (docMode==='gm') p.textContent = buildGm(); else p.innerHTML = '<div class="sqbox" style="max-height:none;border:0">'+sqPreview()+'</div>'; p.hidden=false; window.print(); p.hidden=true; };
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
+
+var tt; function toast(s){ const t=$('#toast'); t.textContent=s; t.style.display='block'; clearTimeout(tt); tt=setTimeout(()=>t.style.display='none',2200); }
+</script>
+</body>
+</html>
