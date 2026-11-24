@@ -157,6 +157,16 @@ dialog::backdrop{background:rgba(20,25,23,.45)}
 .form label{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 .form label.full{grid-column:1/-1}
 .form input,.form textarea,.form select{padding:9px 10px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:14px}
+.form .lbl{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.dseg{display:flex;align-items:center;gap:4px;border:1.5px solid var(--line);border-radius:9px;background:#fff;padding:4px 6px;position:relative;color:var(--ink);font-size:14px}
+.dseg:focus-within{border-color:var(--green-2);box-shadow:0 0 0 3px var(--green-soft)}
+.dseg.bad{border-color:var(--red)}
+.dseg input:not(.dp){border:0;outline:0;background:transparent;padding:4px 2px;text-align:center;font-size:15px;color:var(--ink)}
+.dseg .y{width:52px}.dseg .m,.dseg .d{width:30px}
+.dseg span{color:var(--muted);font-size:13px}
+.dseg .cal{margin-left:auto;border:0;background:var(--tint);color:var(--green);border-radius:7px;width:32px;height:30px;display:grid;place-items:center;cursor:pointer}
+.dseg .cal svg{width:17px;height:17px}
+.dseg .dp{position:absolute;right:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
 .form select:disabled{background:var(--tint);color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink);appearance:none}
 .form textarea{min-height:60px;resize:vertical}
 @media(max-width:600px){.form{grid-template-columns:1fr}}
@@ -308,8 +318,8 @@ footer{background:#fff;border-top:1px solid var(--line);padding:22px 0 40px;colo
       <label class="only-sq">학년 또는 담당교과<input name="gradeSubj" placeholder="4학년 / 과학전담"></label>
       <label class="only-sq">학교전화<input name="phone" placeholder="02-000-0000"></label>
       <label class="only-sq">휴대폰<input name="mobile" placeholder="010-0000-0000"></label>
-      <label class="only-sq">대여 시작일<input name="from" type="date"></label>
-      <label class="only-sq">반납 예정일 <span class="hint" id="toHint">시작일부터 최대 14일</span><input name="to" type="date"></label>
+      <div class="only-sq lbl"><span class="lt">대여 시작일</span><div class="dseg" data-for="from"><input class="y" inputmode="numeric" maxlength="4" placeholder="2026" aria-label="연도"><span>년</span><input class="m" inputmode="numeric" maxlength="2" placeholder="월" aria-label="월"><span>월</span><input class="d" inputmode="numeric" maxlength="2" placeholder="일" aria-label="일"><span>일</span><button type="button" class="cal" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input type="date" class="dp" tabindex="-1" aria-hidden="true"></div><input type="hidden" name="from"></div>
+      <div class="only-sq lbl"><span class="lt">반납 예정일 <span class="hint" id="toHint">시작일부터 최대 14일</span></span><div class="dseg" data-for="to"><input class="y" inputmode="numeric" maxlength="4" placeholder="2026" aria-label="연도"><span>년</span><input class="m" inputmode="numeric" maxlength="2" placeholder="월" aria-label="월"><span>월</span><input class="d" inputmode="numeric" maxlength="2" placeholder="일" aria-label="일"><span>일</span><button type="button" class="cal" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input type="date" class="dp" tabindex="-1" aria-hidden="true"></div><input type="hidden" name="to"></div>
     </form>
     <pre class="doc only-gm-out" id="docOut"></pre>
     <div class="sqbox only-sq-out" id="sqOut"></div>
@@ -559,11 +569,45 @@ function limitDates(){
   const max = addDays(fromEl.value, 14);
   toEl.min = fromEl.value; toEl.max = max;
   if (toEl.value && (toEl.value < fromEl.value || toEl.value > max)) toEl.value = max;
+  if (typeof paintSeg === 'function') paintSeg(toEl);
   $('#toHint').textContent = `~ ${max.replaceAll('-','. ')}.까지`;
 }
 fromEl.addEventListener('change', () => { if (!toEl.value) toEl.value = addDays(fromEl.value, 14); limitDates(); refreshDoc(); });
 toEl.addEventListener('change', () => { limitDates(); refreshDoc(); });
 limitDates();
+/* 날짜 칸: 연도 4자리를 치면 월로, 월을 다 치면 일로 자동 이동 */
+function paintSeg(hidden){
+  const box = form.querySelector(`.dseg[data-for=${hidden.name}]`); if (!box) return;
+  const [y,m,d] = (hidden.value || '').split('-');
+  box.querySelector('.y').value = y || ''; box.querySelector('.m').value = m ? String(+m) : ''; box.querySelector('.d').value = d ? String(+d) : '';
+  box.classList.remove('bad');
+}
+function setDate(hidden, val){ hidden.value = val; paintSeg(hidden); hidden.dispatchEvent(new Event('change')); paintSeg(fromEl); paintSeg(toEl); }
+form.querySelectorAll('.dseg').forEach(box => {
+  const hidden = form.querySelector(`[name=${box.dataset.for}]`);
+  const [y, m, d] = ['.y','.m','.d'].map(s => box.querySelector(s)), dp = box.querySelector('.dp');
+  const commit = () => {
+    const Y = +y.value, M = +m.value, D = +d.value;
+    if (y.value.length === 4 && M && D){
+      const dt = new Date(Y, M-1, D);
+      if (dt.getMonth() === M-1 && dt.getDate() === D){ box.classList.remove('bad'); if (hidden.value !== iso(dt)) setDate(hidden, iso(dt)); return; }
+      box.classList.add('bad');
+    }
+  };
+  y.addEventListener('input', () => { y.value = y.value.replace(/\D/g,'').slice(0,4); if (y.value.length === 4){ m.focus(); m.select(); } commit(); });
+  m.addEventListener('input', () => { m.value = m.value.replace(/\D/g,'').slice(0,2); if (m.value.length === 2 || +m.value > 1){ d.focus(); d.select(); } commit(); });
+  d.addEventListener('input', () => { d.value = d.value.replace(/\D/g,'').slice(0,2); commit(); });
+  [m, d].forEach((el, i) => el.addEventListener('keydown', e => { if (e.key === 'Backspace' && !el.value){ const prev = [y, m][i]; prev.focus(); e.preventDefault(); } }));
+  [y, m, d].forEach(el => {
+    el.addEventListener('focus', () => el.select());
+    el.addEventListener('click', () => el.select());
+    // 칸이 이미 꽉 차 있으면 새 숫자로 다시 쓰기
+    el.addEventListener('keydown', e => { if (/^\d$/.test(e.key) && el.value.length >= el.maxLength && el.selectionStart === el.selectionEnd) el.value = ''; });
+  });
+  box.querySelector('.cal').onclick = () => { dp.value = hidden.value; dp.min = hidden === toEl ? (fromEl.value || '') : iso(new Date()); dp.max = hidden === toEl && fromEl.value ? addDays(fromEl.value, 14) : ''; try { dp.showPicker(); } catch { dp.focus(); dp.click(); } };
+  dp.addEventListener('change', () => { if (dp.value) setDate(hidden, dp.value); });
+});
+paintSeg(fromEl); paintSeg(toEl);
 const d8 = s => s ? s.replaceAll('-','. ')+'.' : '0000. 00. 00.';
 // 각 교육지원청 누리집 메뉴에 표시된 센터명 (2026. 11. 24. 확인). 두 곳이 있는 지원청은 첫 번째가 기본값
 const CENTERS = {
