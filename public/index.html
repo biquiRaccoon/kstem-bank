@@ -75,7 +75,6 @@ select.sort{padding:0 12px;border:1.5px solid var(--line);border-radius:12px;bac
 .tabs{display:flex;gap:6px;margin:14px 0 0}
 .tabs button{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 16px;font-weight:700;cursor:pointer}
 .tabs button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
-[data-mode=gm] .only-sq,[data-mode=sq] .only-gm{display:none}
 .copied{font-size:13px;color:var(--green);font-weight:600;align-self:center;min-height:1em}
 .hint{font-size:12px;color:var(--muted)}
 .rowlabel{font-size:12px;color:var(--muted);margin:10px 2px -4px;font-weight:600;letter-spacing:.2px}
@@ -170,7 +169,9 @@ dialog::backdrop{background:rgba(20,25,23,.45)}
 .form select:disabled{background:var(--tint);color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink);appearance:none}
 .form textarea{min-height:60px;resize:vertical}
 @media(max-width:600px){.form{grid-template-columns:1fr}}
-[data-mode=gm] .only-sq-out,[data-mode=sq] .only-gm-out{display:none}
+.btn.purple{background:var(--cat-수학);box-shadow:0 3px 0 #6b3c9e}
+.webnote{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+.webnote a{color:var(--green);font-weight:600}
 .sqbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;max-height:380px;overflow:auto;font-size:12.5px}
 .sqbox h3{text-align:center;margin:4px 0 10px;font-size:17px}
 .sqt{width:100%;border-collapse:collapse}
@@ -290,7 +291,8 @@ footer{background:#fff;border-top:1px solid var(--line);padding:22px 0 40px;colo
         <ul class="bk" id="bk"></ul>
         <div id="bkWarn"></div>
         <button class="btn" id="makeGm" disabled>공문 만들기</button>
-        <button class="btn orange" id="makeDoc" disabled>신청서 초안 만들기</button>
+        <button class="btn orange" id="makeWeb" disabled>신청서(웹사이트용)</button>
+        <button class="btn purple" id="makeDoc" disabled>신청서(공문 붙임용)</button>
         <div id="rentalLinks"></div>
         <p class="note">표시 수량은 지원청이 등록한 <b>보유 수량</b>이에요. 희망 날짜에 대여 가능한지는 원본 대여 페이지나 담당 센터에서 꼭 확인하세요. 이 사이트는 공식 예약 시스템이 아니며, 입력한 내용은 이 브라우저에만 저장됩니다.</p>
       </div>
@@ -309,27 +311,28 @@ footer{background:#fff;border-top:1px solid var(--line);padding:22px 0 40px;colo
     <button class="closer" data-close aria-label="닫기">×</button>
     <h2 id="docTitle">교구 대여 신청서 초안</h2>
     <p class="sub" style="color:var(--muted);font-size:13px;margin:0">적은 내용은 이 브라우저에만 저장됩니다. 서명·직인은 포함되지 않아요.</p>
-    <div class="tabs" role="tablist"><button data-tab="gm">공문</button><button data-tab="sq">신청서</button></div>
+    <div class="tabs" role="tablist"><button data-tab="gm">공문</button><button data-tab="web">신청서(웹사이트용)</button><button data-tab="sq">신청서(공문 붙임용)</button></div>
     <form class="form" id="docForm" onsubmit="return false" data-mode="sq">
-      <label>학교명 <span class="hint" id="schoolHint">예: 창림 → 서울창림초등학교</span><input name="school" placeholder="창림"></label>
-      <label>센터명 <span class="hint">교육지원청 기준 자동 입력</span><select name="gmCenter" id="gmCenter"></select></label>
-      <label class="full only-gm">관련 문서<input name="gmRef1" placeholder="서울특별시교육청 ○○과-0000(2026. 0. 0.)"></label>
-      <label class="only-sq">성명<input name="teacher" placeholder="홍길동"></label>
-      <label class="only-sq">학년 또는 담당교과<input name="gradeSubj" placeholder="4학년 / 과학전담"></label>
-      <label class="only-sq">학교전화<input name="phone" placeholder="02-000-0000"></label>
-      <label class="only-sq">휴대폰<input name="mobile" placeholder="010-0000-0000"></label>
-      <div class="only-sq lbl"><span class="lt">대여 시작일</span><div class="dseg" data-for="from"><input class="y" inputmode="numeric" maxlength="4" placeholder="2026" aria-label="연도"><span>년</span><input class="m" inputmode="numeric" maxlength="2" placeholder="월" aria-label="월"><span>월</span><input class="d" inputmode="numeric" maxlength="2" placeholder="일" aria-label="일"><span>일</span><button type="button" class="cal" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input type="date" class="dp" tabindex="-1" aria-hidden="true"></div><input type="hidden" name="from"></div>
-      <div class="only-sq lbl"><span class="lt">반납 예정일 <span class="hint" id="toHint">시작일부터 최대 14일</span></span><div class="dseg" data-for="to"><input class="y" inputmode="numeric" maxlength="4" placeholder="2026" aria-label="연도"><span>년</span><input class="m" inputmode="numeric" maxlength="2" placeholder="월" aria-label="월"><span>월</span><input class="d" inputmode="numeric" maxlength="2" placeholder="일" aria-label="일"><span>일</span><button type="button" class="cal" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input type="date" class="dp" tabindex="-1" aria-hidden="true"></div><input type="hidden" name="to"></div>
+      <label data-show="gm sq">학교명 <span class="hint" id="schoolHint">예: 창림 → 서울창림초등학교</span><input name="school" placeholder="창림"></label>
+      <label data-show="gm sq">센터명 <span class="hint">교육지원청 기준 자동 입력</span><select name="gmCenter" id="gmCenter"></select></label>
+      <label class="full" data-show="gm">관련 문서<input name="gmRef1" placeholder="서울특별시교육청 ○○과-0000(2026. 0. 0.)"></label>
+      <label data-show="sq">성명<input name="teacher" placeholder="홍길동"></label>
+      <label data-show="sq">학년 또는 담당교과<input name="gradeSubj" placeholder="4학년 / 과학전담"></label>
+      <label data-show="sq">학교전화<input name="phone" placeholder="02-000-0000"></label>
+      <label data-show="sq">휴대폰<input name="mobile" placeholder="010-0000-0000"></label>
+      <div class="lbl" data-show="sq web"><span class="lt">대여 시작일</span><div class="dseg" data-for="from"><input class="y" inputmode="numeric" maxlength="4" placeholder="2026" aria-label="연도"><span>년</span><input class="m" inputmode="numeric" maxlength="2" placeholder="월" aria-label="월"><span>월</span><input class="d" inputmode="numeric" maxlength="2" placeholder="일" aria-label="일"><span>일</span><button type="button" class="cal" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input type="date" class="dp" tabindex="-1" aria-hidden="true"></div><input type="hidden" name="from"></div>
+      <div class="lbl" data-show="sq web"><span class="lt">반납 예정일 <span class="hint" id="toHint">시작일부터 최대 14일</span></span><div class="dseg" data-for="to"><input class="y" inputmode="numeric" maxlength="4" placeholder="2026" aria-label="연도"><span>년</span><input class="m" inputmode="numeric" maxlength="2" placeholder="월" aria-label="월"><span>월</span><input class="d" inputmode="numeric" maxlength="2" placeholder="일" aria-label="일"><span>일</span><button type="button" class="cal" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input type="date" class="dp" tabindex="-1" aria-hidden="true"></div><input type="hidden" name="to"></div>
     </form>
-    <pre class="doc only-gm-out" id="docOut"></pre>
-    <div class="sqbox only-sq-out" id="sqOut"></div>
+    <p class="webnote" data-show="web">원본 대여 페이지의 <b>신청내용</b> 칸에 붙여 넣는 글이에요. <span id="webLink"></span></p>
+    <pre class="doc" data-show="gm web" id="docOut"></pre>
+    <div class="sqbox" data-show="sq" id="sqOut"></div>
     <div class="actions">
-      <button class="btn only-sq-out" id="sqWord">Word(.docx)로 저장</button>
-      <button class="btn only-gm-out" id="copyDoc">텍스트 복사</button>
-      <button class="btn ghost only-sq-out" id="copyItems">교구 목록만 복사</button>
+      <button class="btn" data-show="sq" id="sqWord">Word(.docx)로 저장</button>
+      <button class="btn" data-show="gm web" id="copyDoc">텍스트 복사</button>
+      <button class="btn ghost" data-show="sq" id="copyItems">교구 목록만 복사</button>
       <span class="copied" id="copied" role="status" aria-live="polite"></span>
-      <button class="btn ghost only-gm-out" id="wordDoc">Word(.docx)로 저장</button>
-      <button class="btn ghost" id="printDoc">인쇄 / PDF</button>
+      <button class="btn ghost" data-show="gm" id="wordDoc">Word(.docx)로 저장</button>
+      <button class="btn ghost" data-show="gm sq" id="printDoc">인쇄 / PDF</button>
     </div>
   </div>
 </dialog>
@@ -529,18 +532,18 @@ function offices(){ return [...new Set(basket.map(b=>b.office))]; }
 function renderBasket(){
   const ul = $('#bk');
   $('#fab').textContent = `바구니 ${basket.length}`; $('#fab').classList.toggle('show', basket.length>0);
-  if (!basket.length){ ul.innerHTML=''; $('#bkSub').textContent='교구를 담으면 신청서 초안을 만들 수 있어요.'; $('#bkWarn').innerHTML=''; $('#makeDoc').disabled=$('#makeGm').disabled=true; $('#rentalLinks').innerHTML=''; return; }
+  if (!basket.length){ ul.innerHTML=''; $('#bkSub').textContent='교구를 담으면 신청서 초안을 만들 수 있어요.'; $('#bkWarn').innerHTML=''; $('#makeDoc').disabled=$('#makeGm').disabled=$('#makeWeb').disabled=true; $('#rentalLinks').innerHTML=''; return; }
   ul.innerHTML = basket.map(b => `<li><span>${esc(b.name)}<small>보유 ${b.stock}개</small></span><input type="number" min="1" max="${b.stock}" value="${b.qty}" data-q="${b.key}" aria-label="신청 수량"><button class="x" data-rm="${b.key}" aria-label="빼기">×</button></li>`).join('');
   const offs = offices();
   $('#bkSub').textContent = `${basket.length}종 · ${basket.reduce((s,b)=>s+(+b.qty||0),0)}개`;
   $('#bkWarn').innerHTML = '';
-  $('#makeDoc').disabled = $('#makeGm').disabled = false;
+  $('#makeDoc').disabled = $('#makeGm').disabled = $('#makeWeb').disabled = false;
   $('#rentalLinks').innerHTML = `<div class="rl">${offs.map(id=>`<a href="${rentalUrl(id)}" target="_blank" rel="noopener">${esc(basket.find(b=>b.office===id).officeName)} 원본 대여 페이지 ↗</a>`).join('')}</div>`;
 }
 $('#bk').oninput = e => { const k=e.target.dataset.q; if(!k) return; const b=basket.find(x=>x.key===k); b.qty=Math.max(1, Math.min(b.stock, parseInt(e.target.value)||1)); store.set('basket',basket); $('#bkSub').textContent = `${basket.length}종 · ${basket.reduce((s,b)=>s+(+b.qty||0),0)}개`; };
 $('#bk').onchange = () => renderBasket();
 $('#bk').onclick = e => { const k=e.target.dataset.rm; if(k) toggle(k); };
-if (window.SEED) { $('#printDoc').hidden = true; }
+
 
 /* ---------- document ---------- */
 const form = $('#docForm');
@@ -764,22 +767,35 @@ function sqPreview(){
 }
 function itemsTsv(){ return sqData().items.map(it => `${it.cat}\t${it.name}\t${it.qty}`).join('\n'); }
 
-function buildDoc(){ return buildGm(); }
-function refreshDoc(){ if (docMode==='gm') $('#docOut').textContent = buildGm(); else { saveForm(); $('#sqOut').innerHTML = sqPreview(); } }
+function buildWeb(){
+  saveForm();
+  const items = basket.filter(b => b.office === state.office);
+  const f = formData();
+  const dw = s => s ? `${d8(s)}(${DOW[new Date(s+'T00:00:00').getDay()]})` : '0000. 00. 00.';
+  const days = f.from && f.to ? Math.round((new Date(f.to) - new Date(f.from))/86400000) + 1 : null;
+  return `1. 대여 희망 교구(${items.length}종 ${items.reduce((s,b)=>s+(+b.qty||0),0)}개)
+${items.map((b,n)=>`  ${n+1}) ${b.name}(${b.cat}): ${b.qty}개`).join('\n')}
+2. 대여 희망 기간: ${dw(f.from)} ~ ${dw(f.to)}${days ? ` (${days}일간)` : ''}`;
+}
+function buildDoc(){ return docMode === 'web' ? buildWeb() : buildGm(); }
+function refreshDoc(){ if (docMode==='sq') { saveForm(); $('#sqOut').innerHTML = sqPreview(); } else $('#docOut').textContent = buildDoc(); }
 form.oninput = () => { const n = schoolName(form.querySelector('[name=school]').value); $('#schoolHint').textContent = n ? `→ ${n}` : '예: 창림 → 서울창림초등학교'; refreshDoc(); };
 function openDoc(mode){
   docMode = mode; form.dataset.mode = mode; $('#docDlg .dlg').dataset.mode = mode; loadGmFields();
+  document.querySelectorAll('#docDlg [data-show]').forEach(el => { el.hidden = !el.dataset.show.split(' ').includes(mode) || (window.SEED && el.id === 'printDoc'); });
+  $('#webLink').innerHTML = state.office ? `<a href="${rentalUrl(state.office)}" target="_blank" rel="noopener">대여 페이지 열기 ↗</a>` : '';
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab===mode));
-  $('#docTitle').textContent = mode==='gm' ? '교구 대여 공문 초안' : '교구 대여 신청서';
+  $('#docTitle').textContent = {gm:'교구 대여 공문 초안', web:'교구 대여 신청서(웹사이트용)', sq:'교구 대여 신청서(공문 붙임용)'}[mode];
   refreshDoc(); if (!$('#docDlg').open) $('#docDlg').showModal();
 }
 $('#makeDoc').onclick = () => openDoc('sq');
 $('#makeGm').onclick = () => openDoc('gm');
+$('#makeWeb').onclick = () => openDoc('web');
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => openDoc(b.dataset.tab));
 var ct; function copied(msg, ok, sel='#copyDoc', label='텍스트 복사'){ const c=$('#copied'), b=$(sel); c.textContent=msg; c.style.color = ok ? 'var(--green)' : 'var(--red)'; if (ok && /복사/.test(msg)) b.textContent='✓ 복사되었습니다'; clearTimeout(ct); ct=setTimeout(()=>{ c.textContent=''; b.textContent=label; }, 2500); }
 $('#copyDoc').onclick = async () => {
   const text = buildDoc();
-  try { await navigator.clipboard.writeText(text); copied(`${docMode==='gm'?'공문':'신청서'} 내용이 복사되었습니다. 붙여 넣기(Ctrl+V) 하세요.`, true); }
+  try { await navigator.clipboard.writeText(text); copied(docMode==='web' ? "신청내용이 복사되었습니다. 대여 페이지의 '신청내용' 칸에 붙여 넣으세요." : '공문 내용이 복사되었습니다. 붙여 넣기(Ctrl+V) 하세요.', true); }
   catch {
     const r = document.createRange(); r.selectNodeContents($('#docOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
     try { if (document.execCommand('copy')) { copied('신청서 내용이 복사되었습니다. 붙여 넣기(Ctrl+V) 하세요.', true); return; } } catch {}
