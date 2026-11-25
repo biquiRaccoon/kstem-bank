@@ -1,14 +1,17 @@
 name: 교구 목록 10분 자동 갱신
 
 on:
+  # 주 동력: 각 실행이 끝날 때 다음 실행을 스스로 예약(아래 'next' 작업).
+  # GitHub 예약 실행은 몇 시간씩 건너뛸 때가 있어, 아래 cron은 사슬이 끊겼을 때 다시 잇는 보조 장치입니다.
   schedule:
-    - cron: '*/10 * * * *'   # 10분마다 (GitHub 사정에 따라 몇 분 늦어질 수 있음)
+    - cron: '*/30 * * * *'
     - cron: '0 0 1 * *'      # 매월 1일: 60일 비활성 자동중지 방지용 keepalive
   workflow_dispatch: {}      # Actions 탭에서 수동 실행 가능
   push:
     branches: [main]
 
 permissions:
+  actions: write
   contents: write
   pages: write
   id-token: write
@@ -54,3 +57,20 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # 다음 수집 예약: 낮(06~22시)에는 약 10분 뒤, 밤에는 약 1시간 뒤
+  next:
+    needs: [build, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: 기다렸다가 다음 실행 걸기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          H=$(TZ=Asia/Seoul date +%H)
+          if [ "$H" -ge 6 ] && [ "$H" -lt 22 ]; then WAIT=420; else WAIT=3300; fi
+          echo "KST ${H}시 → ${WAIT}초 뒤 다음 실행"
+          sleep "$WAIT"
+          gh workflow run update.yml --repo "$GITHUB_REPOSITORY" --ref main
