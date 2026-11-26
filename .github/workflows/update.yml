@@ -53,9 +53,16 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.d1.outputs.page_url || steps.d2.outputs.page_url }}
     steps:
-      - id: deployment
+      # GitHub Pages 서버가 가끔 500 오류를 내므로 한 번 더 시도
+      - id: d1
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.d1.outcome == 'failure'
+        run: sleep 60
+      - id: d2
+        if: steps.d1.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
   # 다음 수집 예약: 낮(06~22시)에는 약 10분 뒤, 밤에는 약 1시간 뒤
@@ -73,4 +80,9 @@ jobs:
           if [ "$H" -ge 6 ] && [ "$H" -lt 22 ]; then WAIT=420; else WAIT=3300; fi
           echo "KST ${H}시 → ${WAIT}초 뒤 다음 실행"
           sleep "$WAIT"
-          gh workflow run update.yml --repo "$GITHUB_REPOSITORY" --ref main
+          # GitHub API가 가끔 500 오류를 내므로 최대 5번 시도
+          for i in 1 2 3 4 5; do
+            gh workflow run update.yml --repo "$GITHUB_REPOSITORY" --ref main && exit 0
+            echo "다음 실행 걸기 실패($i/5), 30초 뒤 다시 시도"; sleep 30
+          done
+          exit 1
